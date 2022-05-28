@@ -1,14 +1,15 @@
 import Head from "next/head";
-import { gql } from "@apollo/client";
+import Link from "next/link";
 import client from "../apollo-client";
 import styles from "../styles/Home.module.css";
+import { GET_BOOKS_LIST } from "../queries/books";
+import {
+  Book,
+  BooksQuery,
+  BooksQueryVariables,
+} from "../generated/graphql-types";
 
-type Book = {
-  title: string;
-  author: string;
-};
-
-export default function Home({ books }: { books: Book[] }) {
+export default function Home({ books }: { books?: Book[] }) {
   return (
     <div className={styles.container}>
       <Head>
@@ -18,11 +19,13 @@ export default function Home({ books }: { books: Book[] }) {
       </Head>
 
       <main className={styles.main}>
+        <h1>Books:</h1>
         <ul>
-          {books.map((book) => (
-            <li key={book.title}>
-              <h2>{book.title}</h2>
-              <p>{book.author}</p>
+          {books?.map((book) => (
+            <li key={book.id}>
+              <Link href={`/book/${book.id}`}>
+                <a>{book.title}</a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -32,15 +35,8 @@ export default function Home({ books }: { books: Book[] }) {
 }
 
 export async function getStaticProps() {
-  const { data } = await client.query({
-    query: gql`
-      query Books {
-        books {
-          title
-          author
-        }
-      }
-    `,
+  const { data } = await client.query<BooksQuery, BooksQueryVariables>({
+    query: GET_BOOKS_LIST,
   });
 
   return {
